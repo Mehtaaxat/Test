@@ -12,7 +12,7 @@ jobs:
       - name: Check if PR title and Squash message are the same
         id: check_messages
         run: |
-          pr_title=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" | jq -r '.title')
+          pr_title="${{ github.event.pull_request.title }}"
           squash_message=$(git log -n 1 --format=%s ${{ github.event.before }}..${{ github.event.after }})
 
           if [ "$pr_title" != "$squash_message" ]; then
