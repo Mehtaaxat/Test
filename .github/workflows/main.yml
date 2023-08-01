@@ -1,0 +1,28 @@
+name: Customize Squash Commit
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  customize_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Customize Squash Commit Message
+        run: |
+          pr_title="${{ github.event.pull_request.title }}"
+          pr_validation=$(echo  $pr_title)
+          git reset --soft HEAD~1
+          git commit --amend -m "${{ github.event.pull_request.title }}"
+          
+          if [[  $pr_title  == "${{ github.event.head_commit.message }}" ]]; then
+              echo "${{ github.event.head_commit.message }}"
+          else
+              echo $pr_title
+          fi
+                    
+      - name: Push Changes
+        run: git push origin HEAD:main
