@@ -14,6 +14,7 @@ jobs:
         run: |
           pr_title="${{ github.event.pull_request.title }}"
           echo "${{github.event}}"
+          echo "${{ github.event.head_commit.message }}"
           squash_message=$(git log -n 1 --format=%s ${{ github.event.before }}..${{ github.event.after }})
 
           if [ "$pr_title" != "$squash_message" ]; then
