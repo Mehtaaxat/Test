@@ -1,28 +1,26 @@
-name: Customize Squash Commit
+name: Sync Squash Message
+
 on:
   pull_request:
-    types:
-      - closed
+    types: [opened, synchronize, reopened]
 
 jobs:
-  customize_commit:
+  sync_squash_message:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
 
-      - name: Customize Squash Commit Message
+    steps:
+      - name: Check if PR title and Squash message are the same
+        id: check_messages
         run: |
-          pr_title="${{ github.event.pull_request.title }}"
-          pr_validation=$(echo  $pr_title)
-          git reset --soft HEAD~1
-          git commit --amend -m "${{ github.event.pull_request.title }}"
-          
-          if [[  $pr_title  == "${{ github.event.head_commit.message }}" ]]; then
-              echo "${{ github.event.head_commit.message }}"
+          pr_title=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" | jq -r '.title')
+          squash_message=$(git log -n 1 --format=%s ${{ github.event.before }}..${{ github.event.after }})
+
+          if [ "$pr_title" != "$squash_message" ]; then
+            echo "PR title and Squash message are different. Updating Squash message..."
+            git commit --amend -m "$pr_title"
+            git push origin HEAD -f
           else
-              echo $pr_title
+            echo "PR title and Squash message are the same. Nothing to update."
           fi
-                    
-      - name: Push Changes
-        run: git push origin HEAD:main
+        env:
+          PR_NUMBER: ${{ github.event.number }}
