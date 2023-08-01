@@ -13,6 +13,7 @@ jobs:
         id: check_messages
         run: |
           pr_title="${{ github.event.pull_request.title }}"
+          echo "${{github.event}}"
           squash_message=$(git log -n 1 --format=%s ${{ github.event.before }}..${{ github.event.after }})
 
           if [ "$pr_title" != "$squash_message" ]; then
